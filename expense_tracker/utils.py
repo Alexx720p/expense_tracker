@@ -65,10 +65,11 @@ class ExpenseTracker:
     def delete_expense(self, expense_id):
         for expense in self.expenses:
             if expense['id'] == expense_id:
+                description = expense['description']
                 self.expenses.remove(expense)
                 self.reassign_ids(self.expenses)
                 self.save_data()
-                self.console.print(f"[bold green]Deleted expense with id: {expense_id}[/bold green]")
+                self.console.print(f"[bold green]Deleted expense with id: {expense_id} ({description})[/bold green]")
                 return
         print(f"[bold red]Expense with id '{expense_id}' not found.[/bold red]")
 
@@ -86,25 +87,23 @@ class ExpenseTracker:
                 return
         self.console.print(f"[bold red]Expense with ID '{expense_id}' not found.[/bold red]")
 
-    def summary(self, year=None, month=None):
+    def summary(self, year=None, month=None, category=None):
         if year is not None and month is not None:
-            # Filter expenses for the specified month and year
             filtered_expenses = [
                 expense for expense in self.expenses
                 if datetime.datetime.strptime(expense['date'], '%Y-%m-%d').year == year and
                     datetime.datetime.strptime(expense['date'], '%Y-%m-%d').month == month
             ]
             summary_type = f"for {year}-{month:02d}"
+        elif category is not None:
+            filtered_expenses = [expense for expense in self.expenses if expense['category'] == category]
+            if filtered_expenses:
+                summary_type = f"for category '{category}'"
         else:
-            # Use all expenses if no specific month and year are provided
             filtered_expenses = self.expenses
             summary_type = "for all time"
-
-        # Calculate the total amount for the filtered expenses
         total_amount = sum(float(expense['amount']) for expense in filtered_expenses)
         total_expenses = len(filtered_expenses)
-        
-        # Print the summary
         print(f"Summary {summary_type}:")
         print(f"Total expenses: {total_expenses}")
         print(f"Total amount spent: {total_amount:.2f}")
